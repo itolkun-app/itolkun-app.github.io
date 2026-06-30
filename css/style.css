@@ -1,0 +1,453 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Georgia, serif;
+  background: #150E56;
+  color: #222121;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1rem;
+}
+
+.container {
+  width: 100%;
+  max-width: 520px;
+}
+
+/* ─── SCREENS ─── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ─────────────────────────────────────────
+   ГЛАВНЫЙ ЭКРАН
+───────────────────────────────────────── */
+.main-title {
+  text-align: center;
+  font-size: 24px;
+  color: #fff;
+  font-weight: normal;
+  margin-bottom: 0.4rem;
+}
+.main-subtitle {
+  text-align: center;
+  font-size: 13px;
+  color: #d3d1d1;
+  margin-bottom: 2rem;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.char-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 14px;
+  padding: 1.25rem 0.75rem;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.char-card:hover { transform: translateY(-3px); border-color: #aaa; }
+
+.char-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #f0ece6;
+  border: 1px solid #e0dbd4;
+  margin: 0 auto 1rem;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+.char-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.char-name { font-size: 15px; font-weight: bold; margin-bottom: 0.4rem; }
+.char-info { font-size: 12px; color: #777; line-height: 1.6; }
+
+/* ─────────────────────────────────────────
+   ЭКРАН ИСТОРИИ
+───────────────────────────────────────── */
+.story-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.story-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #eee;
+}
+
+.back-btn {
+  width: 22px;
+  height: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: #555;
+  padding: 0;
+  line-height: 1;
+}
+.back-btn:hover { color: #000; }
+
+.story-title { font-size: 15px; font-weight: normal; font-family: Georgia, serif; }
+.story-progress { font-size: 13px; color: #aaa; }
+
+.story-body {
+  padding: 1.25rem;
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+}
+
+.scene-image {
+  width: 100%;
+  max-height: 320px;
+  background: transparent;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+.scene-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;          /* картинка заполняет всё, обрезая края */
+}
+
+.scene-main-text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #1a1a1a;
+  margin-bottom: 0.75rem;
+}
+.scene-main-text p + p { margin-top: 0.4rem; }
+
+.scene-dialog {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #333;
+  margin-bottom: 1.25rem;
+}
+.scene-dialog p + p { margin-top: 0.2rem; }
+
+.choice-label {
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 0.75rem;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.choices--single .choice-btn { grid-column: 1 / -1; }
+
+.choice-btn {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 1.1rem 1rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+.choice-btn:hover { background: #f5f0eb; border-color: #aaa; }
+
+.choice-main {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #1a1a1a;
+}
+.choice-main::before { content: "→  "; }
+
+.choice-sub { font-size: 12px; color: #888; }
+
+/* ─────────────────────────────────────────
+   ФИНАЛ
+───────────────────────────────────────── */
+.ending {
+  text-align: center;
+  padding: 2.5rem 1rem;
+}
+
+
+.ending-svg {
+  width: 70px;
+  height: 70px;
+  margin-bottom: 1rem;
+}
+.ending-title { font-size: 20px; margin-bottom: 0.75rem; }
+.ending-text { font-size: 14px; color: #555; line-height: 1.8; margin-bottom: 2rem; }
+
+.restart-btn {
+  background: #6b1e2d;
+  color: #fff;
+  border: 1px solid #6b1e2d;
+  border-radius: 8px;
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: Georgia, serif;
+}
+.restart-btn:hover { background: #040208; }
+
+/* ─────────────────────────────────────────
+   ЭКРАН ПОМОЩИ
+───────────────────────────────────────── */
+.help-block {
+  background: #ffffff;
+  border: 1px solid #6b1e2d;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 12px;
+}
+.help-title { font-size: 13px; color: #888; margin-bottom: 4px; }
+.help-phone { font-size: 22px; font-weight: bold; color: #1a1a1a; margin-bottom: 6px; }
+.help-desc { font-size: 13px; color: #555; line-height: 1.6; }
+
+/* ─────────────────────────────────────────
+   АДАПТАЦИЯ ПОД ТЕЛЕФОН
+───────────────────────────────────────── */
+@media (max-width: 480px) {
+
+  body {
+    padding: 1rem 0;
+    display: block;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+
+  .main-title { font-size: 18px; }
+  .main-subtitle { font-size: 12px; margin-bottom: 1.25rem; }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .char-card {
+    display: block;
+    text-align: center;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+  }
+
+  .char-avatar {
+    width: 56px;
+    height: 56px;
+    font-size: 22px;
+    margin: 0 auto 0.5rem;
+  }
+
+  .char-name { font-size: 13px; margin-bottom: 0.2rem; }
+  .char-info { font-size: 11px; line-height: 1.4; }
+
+  .story-card {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    min-height: 100vh;
+  }
+
+  .story-header {
+    padding: 0.85rem 1rem;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+  }
+
+  .story-body {
+    padding: 1rem;
+    min-height: calc(100vh - 55px);
+  }
+
+  .choices { grid-template-columns: 1fr; }
+  .choice-btn { padding: 0.9rem 1rem; }
+  .choice-main { font-size: 14px; }
+  .ending { padding: 2rem 0.5rem; }
+  .help-block { padding: 1rem; }
+}
+
+
+/* ─── СПЛЕШ-ЭКРАН ─── */
+#splash {
+  position: fixed;
+  inset: 0;
+  background: #fff;        /* белый на весь экран */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.8s ease;
+}
+
+#splash.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#splash img {
+  width: 55%;
+  max-width: 260px;
+  animation: logoAppear 2s ease forwards;
+}
+
+@keyframes logoAppear {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* ─────────────────────────────────────────
+   ЭКРАН-ПРЕДЫСТОРИЯ
+───────────────────────────────────────── */
+
+/* ─── Плавное появление интро ─── */
+#introScreen {
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+#introScreen.active.fade-in {
+  opacity: 1;
+}
+
+.intro-body {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.intro-content {
+  max-width: 420px;
+  padding: 1rem;
+}
+
+.intro-time {
+  font-size: 14px;
+  color: #888;
+  letter-spacing: 3px;
+  margin-bottom: 2rem;
+  font-family: 'Courier New', monospace;
+}
+
+.intro-text {
+  font-size: 15px;
+  line-height: 1.9;
+  color: #1a1a1a;
+  margin-bottom: 2.5rem;
+  text-align: left;
+}
+
+.intro-text p {
+  margin-bottom: 1rem;
+}
+
+.intro-text p:last-child {
+  margin-bottom: 0;
+}
+
+.intro-btn {
+  background: #150E56;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.9rem 2rem;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: Georgia, serif;
+  transition: background 0.15s;
+}
+
+.intro-btn:hover {
+  background: #0d0936;
+}
+
+.exit-link {
+  display: block;
+  background: none;
+  border: none;
+  color: #777;
+  font-size: 12px;
+  font-family: Georgia, serif;
+  margin: 1.5rem auto 0;
+  padding: 0.5rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: #ccc;
+  text-underline-offset: 3px;
+  transition: color 0.15s;
+}
+
+.exit-link:hover {
+  color: #444;
+}
+
+/* Сценв сбежать */
+.scene-sequence {
+  position: relative;
+  width: 100%;
+  height: 280px;              /* такая же высота как у обычной .scene-image */
+  background: #f5f0eb;        /* мягкий фон под картинками */
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.sequence-img {
+  position: absolute;
+  object-fit: cover; 
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  animation: sequenceShow 6s ease forwards;
+}
+
+@keyframes sequenceShow {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  25%  { opacity: 1; }
+  35%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+.sequence-img:last-child {
+  animation: sequenceShowLast 6s ease forwards;
+}
+
+@keyframes sequenceShowLast {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  100% { opacity: 1; }
+}
