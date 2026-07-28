@@ -451,3 +451,39 @@ body {
   10%  { opacity: 1; }
   100% { opacity: 1; }
 }
+
+/* ─── Плавное появление финала по частям ─── */
+.fade-step {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeStep 1s ease forwards;
+  animation-delay: var(--delay);
+}
+
+@keyframes fadeStep {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Разделительная линия между заголовком и пояснением */
+.ending-divider {
+  width: 40px;
+  height: 1px;
+  background: #ccc;
+  margin: 1.5rem auto;
+}
+
+/* Затемнение перед второй частью */
+.ending-text {
+  color: #666;
+  font-size: 13px;
+  max-width: 480px;
+  margin: 0 auto 2rem;
+  line-height: 1.9;
+}
+
+.ending-buttons {
+  margin-top: 1rem;
+}

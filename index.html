@@ -19,9 +19,9 @@
     <h1 class="main-title">Выбери свою историю</h1>
     <p class="main-subtitle">Истории, о которых редко говорят вслух</p>
     <div class="cards-grid">
-      <div class="char-card" onclick="startStory('aisulu')">
+      <div class="char-card" onclick="startStory('aruuke')">
         <div class="char-avatar">👧</div>
-        <p class="char-name">Айсулу</p>
+        <p class="char-name">Арууке</p>
         <p class="char-info">16 лет<br>Школьница<br>Мечтает поступить в университет</p>
       </div>
       <div class="char-card" onclick="startStory('aizhan')">
@@ -29,9 +29,9 @@
         <p class="char-name">Айжан</p>
         <p class="char-info">19 лет<br>Студентка<br>Подрабатывает в кафе</p>
       </div>
-      <div class="char-card" onclick="startStory('sezim')">
+      <div class="char-card" onclick="startStory('meerim')">
         <div class="char-avatar">👩‍🍼</div>
-        <p class="char-name">Сезим</p>
+        <p class="char-name">Мээрим</p>
         <p class="char-info">24 года<br>Молодая мама<br>Недавно переехала после свадьбы</p>
       </div>
     </div>
@@ -271,7 +271,7 @@ const stories = {
         id: "s1",
         image: "images/scene1a.png",
         text: [
-          "Ты возвращаешься домой после работы в кафе.",
+          "Ты идешь в сторону дома.",
           "На улице уже темно.",
           "Впереди останавливается машина."
         ],
@@ -623,7 +623,7 @@ const stories = {
   },
 
   // Заглушки для других персонажей — можно заполнить позже
-  aisulu: {
+  aruuke: {
     name: "История Айсулу",
     totalScenes: 3,
     scenes: [
@@ -639,7 +639,7 @@ const stories = {
     endings: {}
   },
 
-  sezim: {
+  meerim: {
     name: "История Сезим",
     totalScenes: 3,
     scenes: [
@@ -779,13 +779,17 @@ function showEnding(ending) {
   const helpBtn = ending.help
     ? `<button class="restart-btn" onclick="showHelp()" style="margin-bottom:0.75rem; background:#6b1e2d;">📞 Получить помощь</button><br>`
     : '';
+
   document.getElementById('storyBody').innerHTML = `
     <div class="ending">
-      <div class="ending-icon">${ending.icon}</div>
-      <p class="ending-title">${ending.title}</p>
-      <p class="ending-text">${ending.text}</p>
-      ${helpBtn}
-      <button class="restart-btn" onclick="goHome()">← Вернуться к выбору героя</button>
+      <div class="ending-icon fade-step" style="--delay: 0s">${ending.icon}</div>
+      <p class="ending-title fade-step" style="--delay: 1s">${ending.title}</p>
+      <div class="ending-divider fade-step" style="--delay: 3s"></div>
+      <p class="ending-text fade-step" style="--delay: 3s">${ending.text}</p>
+      <div class="ending-buttons fade-step" style="--delay: 4.5s">
+        ${helpBtn}
+        <button class="restart-btn" onclick="goHome()">← Вернуться к выбору героя</button>
+      </div>
     </div>
   `;
 }
