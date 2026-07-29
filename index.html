@@ -143,9 +143,17 @@ function stopSound(name) {
   }
 }
 
+let currentFade = null;   // храним активный fade
+
 function fadeOutSound(name, duration = 800) {
   const sound = sounds[name];
   if (!sound || sound.paused) return;
+
+  // Отменяем предыдущий fade если был
+  if (currentFade) {
+    clearInterval(currentFade);
+    currentFade = null;
+  }
 
   const startVolume = sound.volume;
   const steps = 20;
@@ -153,13 +161,14 @@ function fadeOutSound(name, duration = 800) {
   const stepVolume = startVolume / steps;
   let currentStep = 0;
 
-  const fadeInterval = setInterval(() => {
+  currentFade = setInterval(() => {
     currentStep++;
     if (currentStep >= steps) {
       sound.pause();
       sound.currentTime = 0;
       sound.volume = startVolume;
-      clearInterval(fadeInterval);
+      clearInterval(currentFade);
+      currentFade = null;
     } else {
       sound.volume = startVolume - (stepVolume * currentStep);
     }
@@ -168,17 +177,42 @@ function fadeOutSound(name, duration = 800) {
 
 function playAmbient(name, volume = 0.3) {
   if (!soundsEnabled || !sounds[name]) return;
-  if (currentAmbient === name) return;
-  if (currentAmbient) stopSound(currentAmbient);
+
+  // Останавливаем текущий fade если был
+  if (currentFade) {
+    clearInterval(currentFade);
+    currentFade = null;
+  }
+
+  // Останавливаем ВСЕ ambient звуки кроме нужного
+  Object.keys(sounds).forEach(key => {
+    if (sounds[key].loop && key !== name) {
+      sounds[key].pause();
+      sounds[key].currentTime = 0;
+    }
+  });
+
+  if (currentAmbient === name && !sounds[name].paused) {
+    sounds[name].volume = volume;
+    return;
+  }
+
   currentAmbient = name;
   sounds[name].volume = volume;
-  sounds[name].currentTime = 0;
-  sounds[name].play().catch(() => {});
+
+  const playPromise = sounds[name].play();
+  if (playPromise !== undefined) {
+    playPromise.catch(err => {
+      if (err.name !== 'AbortError') {
+        console.log('Ambient error:', name, err);
+      }
+    });
+  }
 }
 
 function stopAmbient() {
   if (currentAmbient) {
-    fadeOutSound(currentAmbient, 1000);  // ← плавное затихание за 1 секунду
+    fadeOutSound(currentAmbient, 1000);
     currentAmbient = null;
   }
 }
@@ -901,6 +935,8 @@ function preloadImages() {
   });
 }
 
+
+
 function showScene(scene) {
   stepCount++;
   // document.getElementById('storyProgress').textContent = stepCount + ' / ' + currentStory.totalScenes;
@@ -914,7 +950,7 @@ function showScene(scene) {
 
   // ─── Одноразовый звук сцены ───
   if (scene.sound) {
-    playSound(scene.sound);
+  setTimeout(() => playSound(scene.sound), 200);   // ← задержка 500 мс
   } else if (currentSound) {
     stopSound(currentSound);
     currentSound = null;
@@ -961,6 +997,8 @@ function showScene(scene) {
     <div class="${choicesClass}">${choicesHTML}</div>
     ${exitHTML}
   `;
+
+  preloadNextSceneSounds(scene.id);
 }
 
 function makeChoice(next, trackAnswer) {
@@ -1032,13 +1070,33 @@ function splitByWords(text, startDelay = 0, wordDelay = 0.35) {
 }
 
 function showHelp() {
-  stopAmbient();
+  Object.keys(sounds).forEach(key => {
+    if (sounds[key].loop) {
+      sounds[key].pause();
+      sounds[key].currentTime = 0;
+    }
+  });
+  currentAmbient = null;
+
   document.getElementById('storyScreen').classList.remove('active');
   document.getElementById('helpScreen').classList.add('active');
 }
 
 function goHome() {
-  stopAmbient();               // ← останавливаем финальную музыку
+  // Останавливаем все ambient
+  Object.keys(sounds).forEach(key => {
+    if (sounds[key].loop) {
+      sounds[key].pause();
+      sounds[key].currentTime = 0;
+    }
+  });
+
+  if (currentFade) {
+    clearInterval(currentFade);
+    currentFade = null;
+  }
+  currentAmbient = null;
+
   resetSounds();
   document.getElementById('storyScreen').classList.remove('active');
   document.getElementById('helpScreen').classList.remove('active');

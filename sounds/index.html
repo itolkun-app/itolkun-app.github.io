@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ала качуу</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="preload" href="sounds/cafe.mp3" as="audio">
+<link rel="preload" href="sounds/message_from_dina.mp3" as="audio">
+<link rel="preload" href="sounds/heartbeat_music.mp3" as="audio">
+</head>
+<body>
+  <!-- СПЛЕШ-ЭКРАН С ЛОГОТИПОМ -->
+  <div id="splash">
+    <img src="images/logo.webp" alt="Itolkun">
+  </div>
+
+<div class="container">
+
+  <!-- ГЛАВНЫЙ ЭКРАН -->
+  <div id="mainScreen" class="screen active">
+    <h1 class="main-title">Выбери свою историю</h1>
+    <p class="main-subtitle">Истории, о которых редко говорят вслух</p>
+    <div class="cards-grid">
+      <div class="char-card" onclick="startStory('aruuke')">
+        <div class="char-avatar">👧</div>
+        <p class="char-name">Арууке</p>
+        <p class="char-info">16 лет<br>Школьница<br>Мечтает поступить в университет</p>
+      </div>
+      <div class="char-card" onclick="startStory('aizhan')">
+        <div class="char-avatar"><img src="images/aizhan.png" alt="Айжан"></div>
+        <p class="char-name">Айжан</p>
+        <p class="char-info">19 лет<br>Студентка<br>Подрабатывает в кафе</p>
+      </div>
+      <div class="char-card" onclick="startStory('meerim')">
+        <div class="char-avatar">👩‍🍼</div>
+        <p class="char-name">Мээрим</p>
+        <p class="char-info">24 года<br>Молодая мама<br>Недавно переехала после свадьбы</p>
+      </div>
+    </div>
+  </div>
+  <!-- ЭКРАН-ПРЕДЫСТОРИЯ -->
+  <div id="introScreen" class="screen">
+    <div class="story-card">
+      <div class="story-header">
+        <button class="back-btn" onclick="goHome()">
+          
+        </button>
+        <span class="story-title" id="introTitle"></span>
+        <span class="story-progress"></span>
+      </div>
+      <div class="story-body intro-body" id="introBody"></div>
+    </div>
+  </div>
+  <!-- ЭКРАН ИСТОРИИ -->
+  <div id="storyScreen" class="screen">
+    <div class="story-card">
+      <div class="story-header">
+        <button class="back-btn" onclick="goHome()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12l9-9 9 9"/>
+          <path d="M5 10v10h14V10"/>
+          <path d="M10 20v-6h4v6"/>
+          </svg>
+        </button>
+        <span class="story-title" id="storyTitle"></span>
+        <span class="story-progress" id="storyProgress"></span>
+      </div>
+      <div class="story-body" id="storyBody"></div>
+    </div>
+  </div>
+
+  <!-- ЭКРАН ПОМОЩИ -->
+  <div id="helpScreen" class="screen">
+    <div class="story-card">
+      <div class="story-header">
+        <button class="back-btn" onclick="goHome()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12l9-9 9 9"/>
+          <path d="M5 10v10h14V10"/>
+          <path d="M10 20v-6h4v6"/>
+          </svg>
+        </button>
+        <span class="story-title">Получить помощь</span>
+        <span class="story-progress"></span>
+      </div>
+      <div class="story-body" style="display:block;">
+        <p style="font-size:13px; color:#888; text-align:center; margin-top:1.5rem;margin-bottom:1.5rem;">
+          Ала качуу — это уголовное преступление.<br>Ты не одна.
+        </p>
+        <div class="help-block">
+          <p class="help-title">Кризисный центр</p>
+          <p class="help-phone">0 312 61 61 61</p>
+          <p class="help-desc">Бесплатная психологическая помощь, юридическая консультация, временное убежище</p>
+        </div>
+        <div class="help-block">
+          <p class="help-title">МВД Кыргызстана</p>
+          <p class="help-phone">102</p>
+          <p class="help-desc">Если вы или кто-то другой в непосредственной опасности</p>
+        </div>
+        <div class="help-block">
+          <p class="help-title">Горячая линия</p>
+          <p class="help-phone">150</p>
+          <p class="help-desc">Национальная горячая линия по вопросам насилия в семье и похищений</p>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+// ─── СИСТЕМА ЗВУКОВ ───
+let soundsEnabled = true;
+const sounds = {};
+let currentAmbient = null;
+
+function loadSound(name, file, loop = false) {
+  sounds[name] = new Audio('sounds/' + file);
+  sounds[name].preload = 'auto';
+  sounds[name].loop = loop;
+}
+
+let currentSound = null;
+
+function playSound(name, volume = 0.5) {
+  if (!soundsEnabled || !sounds[name]) return;
+
+  // Останавливаем предыдущий одноразовый звук
+  if (currentSound && currentSound !== name) {
+    stopSound(currentSound);
+  }
+
+  currentSound = name;
+  sounds[name].volume = volume;
+  sounds[name].currentTime = 0;
+  sounds[name].play().catch(() => {});
+}
+
+function stopSound(name) {
+  if (sounds[name]) {
+    sounds[name].pause();
+    sounds[name].currentTime = 0;
+  }
+}
+
+function fadeOutSound(name, duration = 800) {
+  const sound = sounds[name];
+  if (!sound || sound.paused) return;
+
+  const startVolume = sound.volume;
+  const steps = 20;
+  const stepTime = duration / steps;
+  const stepVolume = startVolume / steps;
+  let currentStep = 0;
+
+  const fadeInterval = setInterval(() => {
+    currentStep++;
+    if (currentStep >= steps) {
+      sound.pause();
+      sound.currentTime = 0;
+      sound.volume = startVolume;
+      clearInterval(fadeInterval);
+    } else {
+      sound.volume = startVolume - (stepVolume * currentStep);
+    }
+  }, stepTime);
+}
+
+function playAmbient(name, volume = 0.3) {
+  if (!soundsEnabled || !sounds[name]) return;
+  if (currentAmbient === name) return;
+  if (currentAmbient) stopSound(currentAmbient);
+  currentAmbient = name;
+  sounds[name].volume = volume;
+  sounds[name].currentTime = 0;
+  sounds[name].play().catch(() => {});
+}
+
+function stopAmbient() {
+  if (currentAmbient) {
+    fadeOutSound(currentAmbient, 1000);  // ← плавное затихание за 1 секунду
+    currentAmbient = null;
+  }
+}
+
+// Загружаем звуки
+loadSound('cafe', 'cafe.mp3', true);   // true = зациклить
+loadSound('heartbeat_music', 'heartbeat_music.mp3', true); 
+loadSound('window_close', 'window_close.mp3');
+loadSound('wiping_surface', 'wiping_surface.mp3');
+loadSound('light_switch', 'light_switch.mp3');
+loadSound('trashbag', 'trashbag.mp3');
+loadSound('message', 'message_from_dina.mp3');
+loadSound('honk', 'car_honk.mp3');
+loadSound('male_laugh', 'male_laugh.mp3');
+loadSound('muffled_scream', 'muffled_scream.mp3');
+loadSound('car_driving', 'car_driving.mp3');
+loadSound('run_and_whoosh', 'run_and_whoosh.mp3');
+loadSound('people_laugh', 'people_laugh.mp3');
+loadSound('cry_laugh', 'cry_laugh.mp3');
+loadSound('cry_laugh_gain', 'cry_laugh_gain.mp3');
+loadSound('man_laugh', 'man_laugh.mp3');
+loadSound('silent_run', 'silent_run.mp3');
+loadSound('whoosh3', 'whoosh3.mp3');
+loadSound('fall', 'fall.mp3');
+loadSound('short_gasp', 'short_gasp.mp3');
+loadSound('gasp_fall', 'gasp_fall.mp3');
+loadSound('dog', 'dog.mp3');
+loadSound('closed_door', 'closed_door.mp3');
+loadSound('door_slam', 'door_slam.mp3');
+loadSound('man_footsteps', 'man_footsteps.mp3');
+loadSound('punch', 'punch.mp3');
+loadSound('heavy_panicked_breath', 'heavy_panicked_breath.mp3');
+loadSound('endings', 'endings.mp3', true);
+
+const STATS_URL = 'https://script.google.com/macros/s/AKfycbyl3lAt53UC5A0ZipWYZ3E1Z9q0JFY6g-oruR4OyPoNCEoecRTNkOR6Gme0YBGYYbxc/exec'
+
+const IS_TEST_MODE = true;  // было true, для реальных игроков ставим false
+function saveAnswer(character, answer) {
+  fetch(STATS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: JSON.stringify({
+      character,
+      answer,
+      secret: 'itolkun_secret_2026',
+      test: IS_TEST_MODE ? 'тест' : ''
+    })
+  }).catch(() => {});
+}
+
+// ─── СПЛЕШ-ЭКРАН ───
+document.addEventListener('DOMContentLoaded', function() {
+  const splash = document.getElementById('splash');
+  const container = document.querySelector('.container');
+  container.style.visibility = 'hidden';
+
+  setTimeout(function() {
+    splash.classList.add('fade-out');
+    container.style.visibility = 'visible';
+    setTimeout(function() {
+      splash.style.display = 'none';
+    }, 800);
+  }, 3000);
+});
+
+// ─────────────────────────────────────────────
+// ИСТОРИЯ АЙЖАН — полное дерево из PPTX
+// ─────────────────────────────────────────────
+const stories = {
+
+  aizhan: {
+    name: "История Айжан",
+    totalScenes: 8,
+    ambient: "cafe",
+    intro: {
+      time: "23:47",
+      
+      text: [
+        "Сегодня Айжан задержалась на работе.",
+        "Её коллега внезапно уволилась, и пока никого не нашли приходится закрывать кафе самой.",
+        "Уже почти полночь. Последний посетитель ушёл час назад.",
+        "Осталось убрать кафе и можно идти домой.",
+      ],
+      button: "Дальше"
+    },
+    scenes: [
+
+      // ─────────────────────────────────────────
+      // ВСТУПЛЕНИЕ — кафе
+      // ─────────────────────────────────────────
+      {
+        id: "s0_start",
+        image: "images/scene01.png",
+        text: [
+          "Нужно убраться в кафе."
+        ],
+        ambient: "cafe",
+        dialog: [],
+        question: "С чего начать?",
+        choices: [
+          { main: "Начать со столов", sub: "", next: "s0_tables" },
+          { main: "Начать с мусора",  sub: "", next: "s0_trash" }
+        ]
+      },
+
+      {
+        id: "s0_tables",
+        image: "images/scene02a.png",
+        text: [
+          "Ты протираешь столы один за другим.",
+          "Мусор ещё ждёт."
+        ],
+        ambient: "cafe",
+        sound:"wiping_surface",
+        dialog: [],
+        question: null,
+        choices: [
+          { main: "Вынести мусор", sub: "", next: "s0_done" }
+        ]
+      },
+
+      {
+        id: "s0_trash",
+        image: "images/scene02b.png",
+        text: [
+          "Ты тащишь пакет к выходу.",
+          "Столы ещё не вытерты."
+        ],
+        ambient: "cafe",
+        sound: "trashbag",
+        dialog: [],
+        question: null,
+        choices: [
+          { main: "Вытереть столы", sub: "", next: "s0_done" }
+        ]
+      },
+
+      {
+        id: "s0_done",
+        image: "images/scene03.png",
+        text: [
+          "Всё убрано. Ты снимаешь фартук, надеваешь кардиган."
+        ],
+        ambient: "cafe",
+        dialog: [],
+        question: "Что дальше?",
+        choices: [
+          { main: "Проверить окна",  sub: "", next: "s0_windows" },
+          { main: "Выключить свет",  sub: "", next: "s0_lights" }
+        ]
+      },
+
+      {
+        id: "s0_windows",
+         image: "images/scene04a.png",
+        text: [
+          "Всё закрыто. Ты щёлкаешь выключателем."
+        ],
+        ambient: "cafe",
+        sound:"window_close",
+        dialog: [],
+        question: null,
+        choices: [
+          { main: "Закрыть дверь", sub: "", next: "s0_outside" }
+        ]
+      },
+
+      {
+        id: "s0_lights",
+        image: "images/scene04b.png",
+        text: [
+          "Темно. Ты идёшь к двери."
+        ],
+        ambient: "cafe",
+        sound:"light_switch",
+        dialog: [],
+        question: null,
+        choices: [
+          { main: "Закрыть дверь", sub: "", next: "s0_outside" }
+        ]
+      },
+
+      {
+        id: "s0_outside",
+        image: "images/scene05.png",
+        text: [
+          "Улица. Тихо.",
+          "Ты убираешь ключи в сумку."
+        ],
+        sound: "message",
+        dialog: [
+          "Телефон вибрирует.",
+          "Сообщение от Дины:",
+          "— Айжан, ты видела новости? Ночью похитили девушку, ей было 27 лет. Говорят силой увезли к жениху..."
+        ],
+        question: "Что ты ответишь?",
+        choices: [
+          { main: "Ой, слышала... страшно как",                        sub: "", next: "s1", track: "sympathy" },
+          { main: "А что она делала поздно ночью на улице?",            sub: "", next: "s1", track: "blame_night" },
+          { main: "Ну ей 27... пора уже замуж, может оно и к лучшему", sub: "", next: "s1", track: "blame_age" },
+          { main: "Интересно, как она сейчас?",            sub: "", next: "s1", track: "neutral" }
+        ]
+      },
+
+      // СЦЕНА 1 — начало
+      {
+        id: "s1",
+        image: "images/scene1a.png",
+        text: [
+          "Ты идешь в сторону дома.",
+          "На улице уже темно.",
+          "Впереди останавливается машина."
+        ],
+        sound: "honk",
+        dialog: [
+          "Я уже видела его раньше.",
+          "На свадьбе двоюродной сестры он разговаривал с моим отцом.",
+          "Парень опускает окно:",
+          "— Садись, подвезем. Мы же не чужие."
+        ],
+        question: "Что ты сделаешь?",
+        choices: [
+          { main: "Сесть в машину",            sub: "Будет грубо отказывать", next: "s2_car" },
+          { main: "Отказаться и пойти дальше", sub: "Я почти дошла",          next: "s2_walk" }
+        ]
+      },
+
+      // ВЕТКА: СЕСТЬ В МАШИНУ
+      {
+        id: "s2_car",
+        image: "images/scene4.png",
+        sound:"car_driving",
+        text: [
+          "Ты смотришь в окно и начинаешь волноваться.",
+          "Незнакомые улицы мелькают одна за другой.",
+          "Потом понимаешь: они едут не в сторону твоего дома.",
+          "Сердце начинает биться быстрее.",
+          "Может, они просто объезжают.",
+        ],
+        dialog: [],
+        question: "Что ты сделаешь?",
+        choices: [
+          { main: "Молча ждать", sub: "Может, правда объезжают", next: "s3_house" },
+          { main: "Потребовать остановить", sub: "Сказать что выйдешь здесь", next: "s2_scream" }
+        ]
+      },
+
+      // Потребовать остановить - закрыли рот
+      {
+        id: "s2_scream",
+        image: "images/scene4a.png",
+        sound:"muffled_scream",
+        text: [
+          "— Остановите машину.",
+          "Ты едва успеваешь договорить.",
+          "Чья-то рука резко закрывает тебе рот.",
+          "Сердце уходит в пятки.",
+        ],
+        dialog: [],
+        question: null,
+        choices: [
+          { main: "Дальше", sub: "", next: "s3_house" }
+        ]
+      },
+
+      // Приехали в дом
+      {
+        id: "s3_house",
+        image: "images/scene3.png",
+        text: [
+          "Большой незнакомый дом.",
+          "Женщины заводят тебя внутрь.",
+          "Одна из них поправляет платок у тебя на голове:",
+          "— Все через это проходят.",
+          "Кто-то забирает твой телефон."
+        ],
+        sound:"people_laugh",
+        dialog: [],
+        question: "Что ты сделаешь?",
+        choices: [
+          { main: "Попросить отпустить домой", sub: "Объяснить что не согласна", next: "s4_room" },
+          { main: "Сопротивляться",                sub: "Вырываться, кричать",          next: "s4_resist" }
+        ]
+      },
+
+      // Комната — выбор
+      {
+        id: "s4_room",
+        image: "images/scene5.png",
+        sound:"man_laugh",
+        text: [
+          "— Уже поздно что-то менять, — говорит женщина постарше.",
+          "— Люди уже знают.",
+          "Ты слышишь, как в другой комнате смеются мужчины.",
+        ],
+        dialog: [],
+        question: "Что ты сделаешь?",
+        choices: [
+          { main: "Попробовать сбежать", sub: "Пока никто не смотрит", next: "s5_escape" },
+          { main: "Остаться в комнате",  sub: "Подчиниться",            next: "ending_stay_athome" }
+        ]
+      },
+
+      // Сопротивление — выбор
+      {
+        id: "s4_resist",
+        image: "images/scene3a.png",
+        text: [
+          "Ты вырываешься.",
+          "Одна из женщин крепко хватает тебя за руки.",
+          "— Не позорься. Тебя не отпустят.",
+          "Другая тихо говорит:",
+          "— Мы тоже через такое проходили. Привыкнешь.",
+          "Еще одна женщина подходит и тебя уводят в комнату.",
+        ],
+        sound:"cry_laugh_gain",
+        dialog: [],
+        question: "Что ты сделаешь?",
+        choices: [
+          { main: "Дальше", sub: "", next: "s4_room" }
+        ]
+      },
+
+      // ПОБЕГ — коридор
+      {
+        id: "s5_escape",
+        image: "images/scene6.png",
+        ambient: "heartbeat_music",
+        sound:"silent_run",
+        text: [
+          "Ты выбегаешь в коридор.",
+          "Босиком спускаешься по лестнице, стараясь не шуметь.",
+          "Еще несколько ступенек. Входная дверь уже рядом.",
+          "Вдруг сверху раздается голос:",
+          "— Куда она ушла?!",
+          "Сердце начинает биться так сильно, что почти не слышишь ничего вокруг."
+        ],
+        dialog: [],
+        question: "Что дальше?",
+        choices: [
+          { main: "Попытаться открыть дверь",    sub: "Рвануть ручку",           next: "s6_door" },
+          { main: "Спрятаться в другой комнате", sub: "Переждать и искать выход", next: "s6_hide" }
+        ]
+      },
+
+      // Дверь заперта
+      {
+        id: "s6_door",
+        image: "images/scene7.png",
+        ambient: "heartbeat_music",
+        sound: "closed_door",
+        text: [
+          "Ты хватаешь за ручку двери.",
+          "Заклинило.",
+          "Сзади слышатся быстрые шаги."
+        ],
+        dialog: [],
+        question: "Что дальше?",
+        choices: [
+          { main: "Отчаянно трясти заклинившую дверь", sub: "Ну же, откройся!",       next: "s7_run" },
+          { main: "Спрятаться в комнате", sub: "Надеюсь не найдут",      next: "s6_hide" }
+        ]
+      },
+
+      // Побег через двор
+      {
+        id: "s7_run",
+        image: "images/scene10.png",
+        ambient: "heartbeat_music",
+        sound:"heavy_panicked_breath",
+        text: [
+          "Выбегаешь во двор.",
+          "Холодный воздух обжигает лёгкие.",
+          "Ворота уже совсем близко.",
+          "И слышишь позади громкие шаги, но продолжаешь бежать."
+        ],
+        dialog: [],
+        question: "Что дальше?",
+        choices: [
+          { main: "Бежать к воротам", sub: "Не останавливаться", next: "s8_caught_outside" },
+          { main: "Кричать на улицу", sub: "Попросить помощи",   next: "s8_shout_grab" }
+        ]
+      },
+
+      // Поймали снаружи
+      {
+        id: "s8_caught_outside",
+        imageSequence: [
+          "images/scene9a.png",
+          "images/scene9b.png",
+          "images/scene9c.png",
+          "images/scene9d.png"
+        ],
+        sound:"gasp_fall",
+        text: [
+          "Вдруг кто-то резко хватает тебя за руку.",
+          "Ты пытаешься вырваться.",
+          "Мужчина с силой тянет тебя назад.",
+          "Ты падаешь на землю.",
+          "Из дома выбегают остальные.",
+          "Ты начинаешь плакать и снова пытаешься подняться,",
+          "но тебя удерживают."
+        ],
+        dialog: [],
+        question: null,
+        choices: [
+          { main: "Дальше", sub: "", next: "ending_caught" }
+        ]
+      },
+
+      // Кричать
+
+      {
+      id: "s8_shout_grab",
+      image: "images/scene9b.png",
+      ambient: "heartbeat_music",
+      sound:"short_gasp",
+      text: [
+        "Ты кричишь.",
+        "Тебя хватают за руку."
+      ],
+      dialog: [],
+      question: null,
+      choices: [
+        { main: "Дальше", sub: "", next: "s9_hope" }
+      ]
+      },
+
+      // Продолжение следует...
+      {
+        id: "s9_hope",
+        image: "images/scene11.png",
+        sound:"dog",
+        text: [
+          "Где-то во дворе залаяла собака.",
+          "В соседнем доме загорается свет.",
+          "В окне появляется силуэт."
+        ],
+        dialog: [
+          "Мужчины растеряны.",
+          "Ты бежишь к воротам.",
+          "В тебе что-то оживает.",
+          "Может быть надежда."
+        ],
+        question: null,
+        choices: [
+          { main: "Что было дальше?", sub: "", next: "ending_tbc" }
+        ]
+      },
+
+
+      // Спрятались в комнате — нашли
+      {
+        id: "s6_hide",
+        image: "images/scene8.png",
+        ambient: "heartbeat_music",
+        sound:"man_footsteps",
+        text: [
+          "Ты стараешься не дышать.",
+          "За дверью слышатся шаги.",
+          "Тень останавливается прямо напротив комнаты.",
+          "Тишина.",
+          "Потом дверная ручка медленно поворачивается.",
+          "Ты понимаешь: тебя нашли."
+        ],
+        dialog: [],
+        question: null,
+        choices: [
+          { main: "Дальше", sub: "", next: "ending_caught" }
+        ]
+      },
+
+      // Остались в комнате
+      {
+        id: "s5_stay",
+        image: "images/scene8.png",
+        ambient: "heartbeat_music",
+        sound:"man_footsteps",
+        text: [
+          "Ты стараешься не дышать.",
+          "За дверью слышатся шаги.",
+          "Тень останавливается прямо напротив комнаты.",
+          "Тишина.",
+          "Потом дверная ручка медленно поворачивается.",
+          "Ты понимаешь: тебя нашли."
+        ],
+        dialog: [],
+        question: null,
+        choices: [
+          { main: "Дальше", sub: "", next: "ending_caught" }
+        ]
+      },
+
+      // Поймали у двери
+      {
+        id: "s7_caught",
+        image: "images/scene9.png",
+        sound:"gasp_fall",
+        text: [
+          "Вдруг кто-то резко хватает тебя за руку.",
+          "Ты пытаешься вырваться.",
+          "Мужчина с силой тянет тебя назад.",
+          "Ты падаешь на землю.",
+          "Из дома выбегают остальные.",
+          "Ты начинаешь плакать и снова пытаешься подняться,",
+          "но тебя удерживают."
+        ],
+        dialog: [],
+        question: null,
+        choices: [
+          { main: "Дальше", sub: "", next: "ending_caught" }
+        ]
+      },
+
+      // ─────────────────────────────────────────
+      // ВЕТКА: ОТКАЗАТЬСЯ И ИДТИ ДАЛЬШЕ
+      // ─────────────────────────────────────────
+      {
+        id: "s2_walk",
+        image: "images/scene1b.png",
+        text: [
+          "Ты ускоряешь шаг.",
+          "— Я почти дошла, спасибо, — тихо отвечаешь.",
+          "Машина не уезжает.",
+          "Она медленно едет рядом."
+        ],
+        sound: "male_laugh", 
+        dialog: [
+          "— Что ты так боишься? Мы же просто подвезти хотим.",
+          "На улице почти никого нет."
+        ],
+        question: "Что ты сделаешь?",
+        choices: [
+          { main: "Достать телефон и позвонить маме", sub: "Только бы ответила",      next: "s3_phone" },
+          { main: "Продолжить идти быстрее",          sub: "Осталось совсем немного", next: "s3_run" }
+        ]
+      },
+
+      // Позвонила маме — догнали
+      {
+        id: "s3_phone",
+        image: "images/scene2.png",
+        text: [
+          "Ты достаёшь телефон, но руки начинают дрожать.",
+          "Впереди улица становится темнее.",
+          "Кто-то выходит из машины.",
+          "Ты делаешь шаг назад.",
+          "Дальше всё происходит слишком быстро."
+        ],
+        sound: "run_and_whoosh",
+        dialog: [],
+        question: null,
+        choices: [
+          { main: "Дальше", sub: "", next: "s3_house" }
+        ]
+      },
+
+      // Догнали на улице
+      {
+        id: "s3_caught_street",
+        image: "images/scene2al.png",
+        text: [
+          "Впереди улица становится темнее.",
+          "Ты ускоряешь шаг.",
+          "Позади хлопает дверь машины.",
+          "Ты слышишь быстрые шаги и переходишь на бег.",
+          "Сердце начинает биться так громко, что заглушает остальные звуки.",
+          "Дальше всё происходит слишком быстро."
+        ],
+        sound: "run_and_whoosh",
+        dialog: [],
+        question: null,
+        choices: [
+          { main: "Дальше", sub: "", next: "s3_house" }
+        ],
+        exitOption: true
+      },
+
+      // Продолжила идти — тоже догнали
+      {
+        id: "s3_run",
+        image: "images/scene2al.png",
+        text: [
+          "Впереди улица становится темнее.",
+          "Ты ускоряешь шаг.",
+          "Позади хлопает дверь машины.",
+          "Ты слышишь быстрые шаги и переходишь на бег.",
+          "Сердце начинает биться так громко, что заглушает остальные звуки.",
+          "Дальше всё происходит слишком быстро."
+        ],
+        dialog: [],
+        question: null,
+        sound: "run_and_whoosh",
+        choices: [
+          { main: "Дальше", sub: "", next: "s3_house" }
+        ],
+        exitOption: true
+      }
+
+    ],
+
+    endings: {
+      caught: {
+        icon: '<img src="images/heart.svg" class="ending-svg" alt="">',
+        title: "Многие девушки так и остаются неуслышанными.",
+        text: "Ала качуу — это не традиция. Это похищение. В Кыргызстане это уголовное преступление (ст. 155 УК КР). Если ты оказалась в такой ситуации или знаешь кого-то в опасности — немедленно звони 102 или в кризисный центр 0 312 61 61 61.",
+        help: true,
+        music: "endings"
+      },
+      caught_street: {
+        icon: '<img src="images/heart.svg" class="ending-svg" alt="">',
+        title: "Многие девушки так и остаются неуслышанными.",
+        text: "Ала качуу — это не традиция. Это похищение. В Кыргызстане это уголовное преступление (ст. 155 УК КР). Если ты оказалась в такой ситуации или знаешь кого-то в опасности — немедленно звони 102 или в кризисный центр 0 312 61 61 61.",
+        help: true,
+        music: "endings"
+      },
+      stay_athome: {
+        icon: '<img src="images/heart.svg" class="ending-svg" alt="">',
+        title: "Многие остаются. Не от согласия, а от страха, стыда и одиночества.",
+        text: "Ала качуу — это не традиция. Это похищение. В Кыргызстане это уголовное преступление (ст. 155 УК КР). Если ты оказалась в такой ситуации или знаешь кого-то в опасности — немедленно звони 102 или в кризисный центр 0 312 61 61 61.",
+        help: true,
+        music: "endings"
+      },
+      tbc: {
+        icon: '✦',
+        title: "Продолжение следует...",
+        text: "Айжан ещё не закончила рассказывать свою историю. Возвращайся скоро.",
+        help: false,
+        music: "endings"
+      },
+    }
+  },
+
+  // Заглушки для других персонажей — можно заполнить позже
+  aruuke: {
+    name: "История Айсулу",
+    totalScenes: 3,
+    scenes: [
+      {
+        id: "s1",
+        image: "",
+        text: ["История Айсулу ещё в разработке."],
+        dialog: [],
+        question: "Вернуться?",
+        choices: [{ main: "На главный экран", sub: "", next: "home" }]
+      }
+    ],
+    endings: {}
+  },
+
+  meerim: {
+    name: "История Сезим",
+    totalScenes: 3,
+    scenes: [
+      {
+        id: "s1",
+        image: "",
+        text: ["История Сезим ещё в разработке."],
+        dialog: [],
+        question: "Вернуться?",
+        choices: [{ main: "На главный экран", sub: "", next: "home" }]
+      }
+    ],
+    endings: {}
+  }
+};
+
+// ─────────────────────────────────────────────
+// ENGINE
+// ─────────────────────────────────────────────
+let currentStory = null;
+let stepCount = 0;
+
+function startStory(id) {
+  currentStory = stories[id];
+  stepCount = 0;
+  preloadImages();
+  document.getElementById('mainScreen').classList.remove('active');
+  showIntro();
+}
+
+function showIntro() {
+  const intro = currentStory.intro;
+  if (!intro) {
+    beginStory();
+    return;
+  }
+
+  const introScreen = document.getElementById('introScreen');
+  document.getElementById('introTitle').textContent = currentStory.name;
+
+  const paragraphs = intro.text.map(p => `<p>${p}</p>`).join('');
+
+  document.getElementById('introBody').innerHTML = `
+    <div class="intro-content">
+      <p class="intro-time">${intro.time || ''}</p>
+      <div class="intro-text">${paragraphs}</div>
+      <button class="intro-btn" onclick="beginStory()">${intro.button || 'Начать'} →</button>
+    </div>
+  `;
+
+  introScreen.classList.add('active');
+  setTimeout(() => introScreen.classList.add('fade-in'), 10);
+}
+
+function beginStory() {
+  document.getElementById('introScreen').classList.remove('active');
+  document.getElementById('storyScreen').classList.add('active');
+  document.getElementById('storyTitle').textContent = currentStory.name;
+  const firstScene = currentStory.scenes.find(s => s.id === 's0_start') || currentStory.scenes[0];
+  showScene(firstScene);
+}
+
+function preloadImages() {
+  currentStory.scenes.forEach(scene => {
+    if (scene.image) {
+      const img = new Image();
+      img.src = scene.image;
+    }
+  });
+}
+
+function preloadNextSceneSounds(currentSceneId) {
+  const currentScene = currentStory.scenes.find(s => s.id === currentSceneId);
+  if (!currentScene) return;
+
+  // Собираем звуки из следующих возможных сцен
+  currentScene.choices.forEach(choice => {
+    const nextScene = currentStory.scenes.find(s => s.id === choice.next);
+    if (!nextScene) return;
+
+    if (nextScene.ambient && sounds[nextScene.ambient]) {
+      sounds[nextScene.ambient].load();
+    }
+    if (nextScene.sound && sounds[nextScene.sound]) {
+      sounds[nextScene.sound].load();
+    }
+  });
+}
+
+function showScene(scene) {
+  stepCount++;
+  // document.getElementById('storyProgress').textContent = stepCount + ' / ' + currentStory.totalScenes;
+
+  // ─── Управление фоновым звуком ───
+  if (scene.ambient) {
+    playAmbient(scene.ambient);
+  } else {
+    stopAmbient();
+  }
+
+  // ─── Одноразовый звук сцены ───
+  if (scene.sound) {
+    playSound(scene.sound);
+  } else if (currentSound) {
+    stopSound(currentSound);
+    currentSound = null;
+  }
+
+  let imgHTML = '';
+  if (scene.imageSequence) {
+    imgHTML = '<div class="scene-sequence">' +
+      scene.imageSequence.map((src, i) => `
+        <img src="${src}" class="sequence-img" style="animation-delay: ${i * 1.5}s">
+      `).join('') + '</div>';
+  } else if (scene.image) {
+    imgHTML = `<div class="scene-image"><img src="${scene.image}" alt="сцена"></div>`;
+  }
+
+  const textHTML = scene.text.map(t => `<p>${t}</p>`).join('');
+
+  const dialogHTML = scene.dialog && scene.dialog.length
+    ? `<div class="scene-dialog">${scene.dialog.map(t => `<p>${t}</p>`).join('')}</div>`
+    : '';
+
+  const questionHTML = scene.question
+    ? `<p class="choice-label">${scene.question}</p>`
+    : '';
+
+  const choicesHTML = scene.choices.map(c => `
+    <button class="choice-btn" onclick="makeChoice('${c.next}', '${c.track || ''}')">
+      <div class="choice-main">${c.main}</div>
+      ${c.sub ? `<div class="choice-sub">${c.sub}</div>` : ''}
+    </button>
+  `).join('');
+
+  const exitHTML = scene.exitOption
+  ? `<button class="exit-link" onclick="goHome()">Если вам трудно читать дальше — вы можете выйти здесь</button>`
+  : '';
+
+  const choicesClass = scene.choices.length === 1 ? 'choices choices--single' : 'choices';
+
+  document.getElementById('storyBody').innerHTML = `
+    ${imgHTML}
+    <div class="scene-main-text">${textHTML}</div>
+    ${dialogHTML}
+    ${questionHTML}
+    <div class="${choicesClass}">${choicesHTML}</div>
+    ${exitHTML}
+  `;
+
+  preloadNextSceneSounds(scene.id);
+}
+
+function makeChoice(next, trackAnswer) {
+  if (trackAnswer) {
+    saveAnswer('Айжан', trackAnswer);
+  }
+  if (next === 'home') { goHome(); return; }
+
+  if (next.startsWith('ending_')) {
+    const endingKey = next.replace('ending_', '');
+    showEnding(currentStory.endings[endingKey]);
+    return;
+  }
+
+  const scene = currentStory.scenes.find(s => s.id === next);
+  if (scene) showScene(scene);
+}
+
+function showEnding(ending) {
+  // Останавливаем ambient побега если играл
+  stopAmbient();
+
+  // Запускаем финальную музыку
+  if (ending.music) {
+    playAmbient(ending.music, 0.4);
+  }
+
+
+  document.getElementById('storyProgress').textContent = '✓';
+  const helpBtn = ending.help
+    ? `<button class="restart-btn ending-btn" onclick="showHelp()" style="margin-bottom:0.75rem; background:#6b1e2d;">📞 Получить помощь</button><br>`
+    : '';
+
+  document.getElementById('storyBody').innerHTML = `
+    <div class="ending">
+      <div class="ending-icon fade-step slow-fade" style="--delay: 0s">${ending.icon}</div>
+      <p class="ending-title word-by-word">${splitByWords(ending.title, 1,0.45)}</p>
+      <div class="ending-divider fade-step" style="--delay: 7.5s"></div>
+      <p class="ending-text fade-step" style="--delay: 9.5s">${ending.text}</p>
+      <div class="ending-buttons fade-step" style="--delay: 14.5s">
+        ${helpBtn}
+        <button class="restart-btn ending-btn" onclick="goHome()">← Вернуться к выбору героя</button>
+      </div>
+    </div>
+  `;
+
+  const buttons = document.querySelectorAll('.ending-btn');
+  buttons.forEach(btn => {
+    btn.classList.add('locked');
+    btn.disabled = true;
+  });
+
+  setTimeout(() => {
+    buttons.forEach(btn => {
+      btn.classList.remove('locked');
+      btn.disabled = false;
+    });
+  }, 10000);   // 5 секунд после появления
+}
+
+function splitByWords(text, startDelay = 0, wordDelay = 0.35) {
+  return text
+    .split(' ')
+    .map((word, i) => {
+      const delay = startDelay + i * wordDelay;
+      return `<span class="word" style="--delay: ${delay}s">${word}</span>`;
+    })
+    .join(' ');
+}
+
+function showHelp() {
+  stopAmbient();
+  document.getElementById('storyScreen').classList.remove('active');
+  document.getElementById('helpScreen').classList.add('active');
+}
+
+function goHome() {
+  stopAmbient();               // ← останавливаем финальную музыку
+  resetSounds();
+  document.getElementById('storyScreen').classList.remove('active');
+  document.getElementById('helpScreen').classList.remove('active');
+  document.getElementById('mainScreen').classList.add('active');
+}
+
+function resetSounds() {
+  // пусто, для совместимости
+}
+</script>
+</body>
+</html>
