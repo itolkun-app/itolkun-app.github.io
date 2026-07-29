@@ -475,6 +475,10 @@ body {
   margin: 1.5rem auto;
 }
 
+.slow-fade {
+  animation-duration: 3.5s !important;   /* было 1 сек, стало 2.5 */
+}
+
 /* Затемнение перед второй частью */
 .ending-text {
   color: #666;
@@ -486,4 +490,31 @@ body {
 
 .ending-buttons {
   margin-top: 1rem;
+}
+
+/* Заблокированные кнопки в концовке */
+.ending-btn.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.ending-btn {
+  transition: opacity 0.5s ease;
+}
+
+.word-by-word .word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(6px);
+  animation: wordFade 1.2s ease forwards;
+  animation-delay: var(--delay);
+}
+
+@keyframes wordFade {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

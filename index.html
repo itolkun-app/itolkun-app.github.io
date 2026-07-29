@@ -109,6 +109,110 @@
 
 <script>
 
+// ─── СИСТЕМА ЗВУКОВ ───
+let soundsEnabled = true;
+const sounds = {};
+let currentAmbient = null;
+
+function loadSound(name, file, loop = false) {
+  sounds[name] = new Audio('sounds/' + file);
+  sounds[name].preload = 'auto';
+  sounds[name].loop = loop;
+}
+
+let currentSound = null;
+
+function playSound(name, volume = 0.5) {
+  if (!soundsEnabled || !sounds[name]) return;
+
+  // Останавливаем предыдущий одноразовый звук
+  if (currentSound && currentSound !== name) {
+    stopSound(currentSound);
+  }
+
+  currentSound = name;
+  sounds[name].volume = volume;
+  sounds[name].currentTime = 0;
+  sounds[name].play().catch(() => {});
+}
+
+function stopSound(name) {
+  if (sounds[name]) {
+    sounds[name].pause();
+    sounds[name].currentTime = 0;
+  }
+}
+
+function fadeOutSound(name, duration = 800) {
+  const sound = sounds[name];
+  if (!sound || sound.paused) return;
+
+  const startVolume = sound.volume;
+  const steps = 20;
+  const stepTime = duration / steps;
+  const stepVolume = startVolume / steps;
+  let currentStep = 0;
+
+  const fadeInterval = setInterval(() => {
+    currentStep++;
+    if (currentStep >= steps) {
+      sound.pause();
+      sound.currentTime = 0;
+      sound.volume = startVolume;
+      clearInterval(fadeInterval);
+    } else {
+      sound.volume = startVolume - (stepVolume * currentStep);
+    }
+  }, stepTime);
+}
+
+function playAmbient(name, volume = 0.3) {
+  if (!soundsEnabled || !sounds[name]) return;
+  if (currentAmbient === name) return;
+  if (currentAmbient) stopSound(currentAmbient);
+  currentAmbient = name;
+  sounds[name].volume = volume;
+  sounds[name].currentTime = 0;
+  sounds[name].play().catch(() => {});
+}
+
+function stopAmbient() {
+  if (currentAmbient) {
+    fadeOutSound(currentAmbient, 1000);  // ← плавное затихание за 1 секунду
+    currentAmbient = null;
+  }
+}
+
+// Загружаем звуки
+loadSound('cafe', 'cafe.mp3', true);   // true = зациклить
+loadSound('heartbeat_music', 'heartbeat_music.mp3', true); 
+loadSound('window_close', 'window_close.mp3');
+loadSound('wiping_surface', 'wiping_surface.mp3');
+loadSound('light_switch', 'light_switch.mp3');
+loadSound('trashbag', 'trashbag.mp3');
+loadSound('message', 'message_from_dina.mp3');
+loadSound('honk', 'car_honk.mp3');
+loadSound('male_laugh', 'male_laugh.mp3');
+loadSound('muffled_scream', 'muffled_scream.mp3');
+loadSound('car_driving', 'car_driving.mp3');
+loadSound('run_and_whoosh', 'run_and_whoosh.mp3');
+loadSound('people_laugh', 'people_laugh.mp3');
+loadSound('cry_laugh', 'cry_laugh.mp3');
+loadSound('cry_laugh_gain', 'cry_laugh_gain.mp3');
+loadSound('man_laugh', 'man_laugh.mp3');
+loadSound('silent_run', 'silent_run.mp3');
+loadSound('whoosh3', 'whoosh3.mp3');
+loadSound('fall', 'fall.mp3');
+loadSound('short_gasp', 'short_gasp.mp3');
+loadSound('gasp_fall', 'gasp_fall.mp3');
+loadSound('dog', 'dog.mp3');
+loadSound('closed_door', 'closed_door.mp3');
+loadSound('door_slam', 'door_slam.mp3');
+loadSound('man_footsteps', 'man_footsteps.mp3');
+loadSound('punch', 'punch.mp3');
+loadSound('heavy_panicked_breath', 'heavy_panicked_breath.mp3');
+loadSound('endings', 'endings.mp3', true);
+
 const STATS_URL = 'https://script.google.com/macros/s/AKfycbyl3lAt53UC5A0ZipWYZ3E1Z9q0JFY6g-oruR4OyPoNCEoecRTNkOR6Gme0YBGYYbxc/exec'
 
 const IS_TEST_MODE = true;  // было true, для реальных игроков ставим false
@@ -148,8 +252,10 @@ const stories = {
   aizhan: {
     name: "История Айжан",
     totalScenes: 8,
+    ambient: "cafe",
     intro: {
       time: "23:47",
+      
       text: [
         "Сегодня Айжан задержалась на работе.",
         "Её коллега внезапно уволилась, и пока никого не нашли приходится закрывать кафе самой.",
@@ -169,6 +275,7 @@ const stories = {
         text: [
           "Нужно убраться в кафе."
         ],
+        ambient: "cafe",
         dialog: [],
         question: "С чего начать?",
         choices: [
@@ -184,6 +291,8 @@ const stories = {
           "Ты протираешь столы один за другим.",
           "Мусор ещё ждёт."
         ],
+        ambient: "cafe",
+        sound:"wiping_surface",
         dialog: [],
         question: null,
         choices: [
@@ -198,6 +307,8 @@ const stories = {
           "Ты тащишь пакет к выходу.",
           "Столы ещё не вытерты."
         ],
+        ambient: "cafe",
+        sound: "trashbag",
         dialog: [],
         question: null,
         choices: [
@@ -211,6 +322,7 @@ const stories = {
         text: [
           "Всё убрано. Ты снимаешь фартук, надеваешь кардиган."
         ],
+        ambient: "cafe",
         dialog: [],
         question: "Что дальше?",
         choices: [
@@ -225,6 +337,8 @@ const stories = {
         text: [
           "Всё закрыто. Ты щёлкаешь выключателем."
         ],
+        ambient: "cafe",
+        sound:"window_close",
         dialog: [],
         question: null,
         choices: [
@@ -238,6 +352,8 @@ const stories = {
         text: [
           "Темно. Ты идёшь к двери."
         ],
+        ambient: "cafe",
+        sound:"light_switch",
         dialog: [],
         question: null,
         choices: [
@@ -252,6 +368,7 @@ const stories = {
           "Улица. Тихо.",
           "Ты убираешь ключи в сумку."
         ],
+        sound: "message",
         dialog: [
           "Телефон вибрирует.",
           "Сообщение от Дины:",
@@ -275,6 +392,7 @@ const stories = {
           "На улице уже темно.",
           "Впереди останавливается машина."
         ],
+        sound: "honk",
         dialog: [
           "Я уже видела его раньше.",
           "На свадьбе двоюродной сестры он разговаривал с моим отцом.",
@@ -292,6 +410,7 @@ const stories = {
       {
         id: "s2_car",
         image: "images/scene4.png",
+        sound:"car_driving",
         text: [
           "Ты смотришь в окно и начинаешь волноваться.",
           "Незнакомые улицы мелькают одна за другой.",
@@ -311,6 +430,7 @@ const stories = {
       {
         id: "s2_scream",
         image: "images/scene4a.png",
+        sound:"muffled_scream",
         text: [
           "— Остановите машину.",
           "Ты едва успеваешь договорить.",
@@ -335,6 +455,7 @@ const stories = {
           "— Все через это проходят.",
           "Кто-то забирает твой телефон."
         ],
+        sound:"people_laugh",
         dialog: [],
         question: "Что ты сделаешь?",
         choices: [
@@ -347,6 +468,7 @@ const stories = {
       {
         id: "s4_room",
         image: "images/scene5.png",
+        sound:"man_laugh",
         text: [
           "— Уже поздно что-то менять, — говорит женщина постарше.",
           "— Люди уже знают.",
@@ -372,6 +494,7 @@ const stories = {
           "— Мы тоже через такое проходили. Привыкнешь.",
           "Еще одна женщина подходит и тебя уводят в комнату.",
         ],
+        sound:"cry_laugh_gain",
         dialog: [],
         question: "Что ты сделаешь?",
         choices: [
@@ -383,6 +506,8 @@ const stories = {
       {
         id: "s5_escape",
         image: "images/scene6.png",
+        ambient: "heartbeat_music",
+        sound:"silent_run",
         text: [
           "Ты выбегаешь в коридор.",
           "Босиком спускаешься по лестнице, стараясь не шуметь.",
@@ -403,6 +528,8 @@ const stories = {
       {
         id: "s6_door",
         image: "images/scene7.png",
+        ambient: "heartbeat_music",
+        sound: "closed_door",
         text: [
           "Ты хватаешь за ручку двери.",
           "Заклинило.",
@@ -420,6 +547,8 @@ const stories = {
       {
         id: "s7_run",
         image: "images/scene10.png",
+        ambient: "heartbeat_music",
+        sound:"heavy_panicked_breath",
         text: [
           "Выбегаешь во двор.",
           "Холодный воздух обжигает лёгкие.",
@@ -443,6 +572,7 @@ const stories = {
           "images/scene9c.png",
           "images/scene9d.png"
         ],
+        sound:"gasp_fall",
         text: [
           "Вдруг кто-то резко хватает тебя за руку.",
           "Ты пытаешься вырваться.",
@@ -464,6 +594,8 @@ const stories = {
       {
       id: "s8_shout_grab",
       image: "images/scene9b.png",
+      ambient: "heartbeat_music",
+      sound:"short_gasp",
       text: [
         "Ты кричишь.",
         "Тебя хватают за руку."
@@ -479,6 +611,7 @@ const stories = {
       {
         id: "s9_hope",
         image: "images/scene11.png",
+        sound:"dog",
         text: [
           "Где-то во дворе залаяла собака.",
           "В соседнем доме загорается свет.",
@@ -501,6 +634,8 @@ const stories = {
       {
         id: "s6_hide",
         image: "images/scene8.png",
+        ambient: "heartbeat_music",
+        sound:"man_footsteps",
         text: [
           "Ты стараешься не дышать.",
           "За дверью слышатся шаги.",
@@ -520,6 +655,8 @@ const stories = {
       {
         id: "s5_stay",
         image: "images/scene8.png",
+        ambient: "heartbeat_music",
+        sound:"man_footsteps",
         text: [
           "Ты стараешься не дышать.",
           "За дверью слышатся шаги.",
@@ -539,6 +676,7 @@ const stories = {
       {
         id: "s7_caught",
         image: "images/scene9.png",
+        sound:"gasp_fall",
         text: [
           "Вдруг кто-то резко хватает тебя за руку.",
           "Ты пытаешься вырваться.",
@@ -567,6 +705,7 @@ const stories = {
           "Машина не уезжает.",
           "Она медленно едет рядом."
         ],
+        sound: "male_laugh", 
         dialog: [
           "— Что ты так боишься? Мы же просто подвезти хотим.",
           "На улице почти никого нет."
@@ -589,6 +728,7 @@ const stories = {
           "Ты делаешь шаг назад.",
           "Дальше всё происходит слишком быстро."
         ],
+        sound: "run_and_whoosh",
         dialog: [],
         question: null,
         choices: [
@@ -608,6 +748,7 @@ const stories = {
           "Сердце начинает биться так громко, что заглушает остальные звуки.",
           "Дальше всё происходит слишком быстро."
         ],
+        sound: "run_and_whoosh",
         dialog: [],
         question: null,
         choices: [
@@ -630,6 +771,7 @@ const stories = {
         ],
         dialog: [],
         question: null,
+        sound: "run_and_whoosh",
         choices: [
           { main: "Дальше", sub: "", next: "s3_house" }
         ],
@@ -641,27 +783,31 @@ const stories = {
     endings: {
       caught: {
         icon: '<img src="images/heart.svg" class="ending-svg" alt="">',
-        title: "Многие девушки так и остаются неуслышанными",
+        title: "Многие девушки так и остаются неуслышанными.",
         text: "Ала качуу — это не традиция. Это похищение. В Кыргызстане это уголовное преступление (ст. 155 УК КР). Если ты оказалась в такой ситуации или знаешь кого-то в опасности — немедленно звони 102 или в кризисный центр 0 312 61 61 61.",
-        help: true
+        help: true,
+        music: "endings"
       },
       caught_street: {
         icon: '<img src="images/heart.svg" class="ending-svg" alt="">',
-        title: "Многие девушки так и остаются неуслышанными",
+        title: "Многие девушки так и остаются неуслышанными.",
         text: "Ала качуу — это не традиция. Это похищение. В Кыргызстане это уголовное преступление (ст. 155 УК КР). Если ты оказалась в такой ситуации или знаешь кого-то в опасности — немедленно звони 102 или в кризисный центр 0 312 61 61 61.",
-        help: true
+        help: true,
+        music: "endings"
       },
       stay_athome: {
         icon: '<img src="images/heart.svg" class="ending-svg" alt="">',
-        title: "Многие остаются. Не от согласия, а от страха, стыда и одиночества",
+        title: "Многие остаются. Не от согласия, а от страха, стыда и одиночества.",
         text: "Ала качуу — это не традиция. Это похищение. В Кыргызстане это уголовное преступление (ст. 155 УК КР). Если ты оказалась в такой ситуации или знаешь кого-то в опасности — немедленно звони 102 или в кризисный центр 0 312 61 61 61.",
-        help: true
+        help: true,
+        music: "endings"
       },
       tbc: {
         icon: '✦',
         title: "Продолжение следует...",
         text: "Айжан ещё не закончила рассказывать свою историю. Возвращайся скоро.",
-        help: false
+        help: false,
+        music: "endings"
       },
     }
   },
@@ -759,6 +905,21 @@ function showScene(scene) {
   stepCount++;
   // document.getElementById('storyProgress').textContent = stepCount + ' / ' + currentStory.totalScenes;
 
+  // ─── Управление фоновым звуком ───
+  if (scene.ambient) {
+    playAmbient(scene.ambient);
+  } else {
+    stopAmbient();
+  }
+
+  // ─── Одноразовый звук сцены ───
+  if (scene.sound) {
+    playSound(scene.sound);
+  } else if (currentSound) {
+    stopSound(currentSound);
+    currentSound = null;
+  }
+
   let imgHTML = '';
   if (scene.imageSequence) {
     imgHTML = '<div class="scene-sequence">' +
@@ -819,34 +980,73 @@ function makeChoice(next, trackAnswer) {
 }
 
 function showEnding(ending) {
+  // Останавливаем ambient побега если играл
+  stopAmbient();
+
+  // Запускаем финальную музыку
+  if (ending.music) {
+    playAmbient(ending.music, 0.4);
+  }
+
+
   document.getElementById('storyProgress').textContent = '✓';
   const helpBtn = ending.help
-    ? `<button class="restart-btn" onclick="showHelp()" style="margin-bottom:0.75rem; background:#6b1e2d;">📞 Получить помощь</button><br>`
+    ? `<button class="restart-btn ending-btn" onclick="showHelp()" style="margin-bottom:0.75rem; background:#6b1e2d;">📞 Получить помощь</button><br>`
     : '';
 
   document.getElementById('storyBody').innerHTML = `
     <div class="ending">
-      <div class="ending-icon fade-step" style="--delay: 0s">${ending.icon}</div>
-      <p class="ending-title fade-step" style="--delay: 1s">${ending.title}</p>
-      <div class="ending-divider fade-step" style="--delay: 3s"></div>
-      <p class="ending-text fade-step" style="--delay: 3s">${ending.text}</p>
-      <div class="ending-buttons fade-step" style="--delay: 4.5s">
+      <div class="ending-icon fade-step slow-fade" style="--delay: 0s">${ending.icon}</div>
+      <p class="ending-title word-by-word">${splitByWords(ending.title, 1,0.45)}</p>
+      <div class="ending-divider fade-step" style="--delay: 7.5s"></div>
+      <p class="ending-text fade-step" style="--delay: 9.5s">${ending.text}</p>
+      <div class="ending-buttons fade-step" style="--delay: 14.5s">
         ${helpBtn}
-        <button class="restart-btn" onclick="goHome()">← Вернуться к выбору героя</button>
+        <button class="restart-btn ending-btn" onclick="goHome()">← Вернуться к выбору героя</button>
       </div>
     </div>
   `;
+
+  const buttons = document.querySelectorAll('.ending-btn');
+  buttons.forEach(btn => {
+    btn.classList.add('locked');
+    btn.disabled = true;
+  });
+
+  setTimeout(() => {
+    buttons.forEach(btn => {
+      btn.classList.remove('locked');
+      btn.disabled = false;
+    });
+  }, 10000);   // 5 секунд после появления
+}
+
+function splitByWords(text, startDelay = 0, wordDelay = 0.35) {
+  return text
+    .split(' ')
+    .map((word, i) => {
+      const delay = startDelay + i * wordDelay;
+      return `<span class="word" style="--delay: ${delay}s">${word}</span>`;
+    })
+    .join(' ');
 }
 
 function showHelp() {
+  stopAmbient();
   document.getElementById('storyScreen').classList.remove('active');
   document.getElementById('helpScreen').classList.add('active');
 }
 
 function goHome() {
+  stopAmbient();               // ← останавливаем финальную музыку
+  resetSounds();
   document.getElementById('storyScreen').classList.remove('active');
   document.getElementById('helpScreen').classList.remove('active');
   document.getElementById('mainScreen').classList.add('active');
+}
+
+function resetSounds() {
+  // пусто, для совместимости
 }
 </script>
 </body>
